@@ -2,10 +2,7 @@ import numpy as np
 import nnfs
 from nnfs.datasets import spiral_data
 
-
-np.random.seed(0)
-
-X, y = spiral_data(100, 3)
+nnfs.init()
 
 class Layer_Dense:
     def __init__(self, n_inputs, n_neurons):
@@ -21,11 +18,24 @@ class Activation_ReLU:
         self.output = np.maximum(0, inputs)
 
 
-layer1 = Layer_Dense(2, 5)  # first arg must be 2 because an image or graph only has 2 features (X, Y coordinates)
+class Activation_Softmax:
+    def forward(self, inputs):
+        exp_values = np.exp((inputs) - np.max(inputs, axis=1, keepdims=True))  # subtract the largest value in this batch
+        # so that the values after exponentiation is only (0, 1) as e ** 0 = 1
+        probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
+        self.output = probabilities
+
+X, y = spiral_data(samples=100, classes=3)
+
+dense1 = Layer_Dense(2,3)
 activation1 = Activation_ReLU()
+dense2 = Layer_Dense(3,3)  # second number if this is the last layer needs to be how many categories (classes) you want
+activation2 = Activation_Softmax()
 
-layer1.forward(X)
-activation1.forward(layer1.output)
+dense1.forward(X)
+activation1.forward(dense1.output)
 
-# print(layer1.output)
-print(activation1.output)
+dense2.forward(activation1.output)
+activation2.forward(dense2.output)
+
+print(activation2.output)
